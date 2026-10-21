@@ -484,8 +484,9 @@ func (r *SandboxReconciler) reconcileChildResources(ctx context.Context, sandbox
 	// Suspended is deliberately NOT in this set: it is persistent and
 	// transitions to False rather than being removed (see #1150).
 	presentWhileApplicable := map[string]bool{
-		string(sandboxv1beta1.SandboxConditionFinished):     false,
-		string(sandboxv1beta1.SandboxConditionPodScheduled): false,
+		string(sandboxv1beta1.SandboxConditionFinished):            false,
+		string(sandboxv1beta1.SandboxConditionPodScheduled):        false,
+		string(sandboxv1beta1.SandboxConditionContainersRestarted): false,
 	}
 	for _, condition := range conditions {
 		meta.SetStatusCondition(&sandbox.Status.Conditions, condition)
@@ -526,9 +527,68 @@ func (r *SandboxReconciler) computeConditions(sandbox *sandboxv1beta1.Sandbox, e
 		conditions = append(conditions, *podScheduled)
 	}
 
+	if restarted := computeContainersRestartedCondition(sandbox, pod, podErr); restarted != nil {
+		conditions = append(conditions, *restarted)
+	}
+
 	conditions = append(conditions, r.computeReadyCondition(sandbox, err, svc, pod))
 
 	return conditions
+}
+
+// computeContainersRestartedCondition reports whether any container of the
+// backing Pod has restarted. Like PodScheduled, it is Unknown when the Pod
+// lookup failed and absent when the Pod is confirmed gone or not owned by this
+// Sandbox. The message is built from stable fields only (container name and
+// last exit reason), not the restart count, so a crash-looping Pod costs one
+// status write when it first restarts rather than one per backoff.
+func computeContainersRestartedCondition(sandbox *sandboxv1beta1.Sandbox, pod *corev1.Pod, podErr error) *metav1.Condition {
+	condition := &metav1.Condition{
+		Type:               string(sandboxv1beta1.SandboxConditionContainersRestarted),
+		ObservedGeneration: sandbox.Generation,
+	}
+
+	if pod == nil && podErr != nil {
+		condition.Status = metav1.ConditionUnknown
+		condition.Reason = sandboxv1beta1.SandboxReasonContainerRestartsUnknown
+		condition.Message = "Pod state is unknown. Container restarts cannot be determined"
+		return condition
+	}
+
+	if !isOwnedBySandbox(pod, sandbox) {
+		return nil
+	}
+
+	restarted := restartedContainer("init container", pod.Status.InitContainerStatuses)
+	if restarted == "" {
+		restarted = restartedContainer("container", pod.Status.ContainerStatuses)
+	}
+	if restarted == "" {
+		condition.Status = metav1.ConditionFalse
+		condition.Reason = sandboxv1beta1.SandboxReasonNoContainerRestarts
+		condition.Message = "No container has restarted"
+		return condition
+	}
+
+	condition.Status = metav1.ConditionTrue
+	condition.Reason = sandboxv1beta1.SandboxReasonContainerRestarted
+	condition.Message = restarted
+	return condition
+}
+
+// restartedContainer describes the first container in statuses that has
+// restarted, or "" if none has.
+func restartedContainer(kind string, statuses []corev1.ContainerStatus) string {
+	for _, cs := range statuses {
+		if cs.RestartCount == 0 {
+			continue
+		}
+		if last := cs.LastTerminationState.Terminated; last != nil && last.Reason != "" {
+			return fmt.Sprintf("%s %q has restarted (last exit: %s)", kind, cs.Name, last.Reason)
+		}
+		return fmt.Sprintf("%s %q has restarted", kind, cs.Name)
+	}
+	return ""
 }
 
 // computePodScheduledCondition mirrors the backing Pod's PodScheduled
@@ -2037,6 +2097,7 @@ func setSandboxExpiredCondition(sandbox *sandboxv1beta1.Sandbox) {
 	// condition here or it would linger with stale pre-expiry contents.
 	// Finished, by contrast, is deliberately preserved across expiry.
 	meta.RemoveStatusCondition(&sandbox.Status.Conditions, string(sandboxv1beta1.SandboxConditionPodScheduled))
+	meta.RemoveStatusCondition(&sandbox.Status.Conditions, string(sandboxv1beta1.SandboxConditionContainersRestarted))
 }
 
 // sandboxMarkedExpired checks if the sandbox is already marked as expired.

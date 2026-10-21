@@ -15,6 +15,7 @@ A `Sandbox` reports its observed state in `status.conditions`. This page maps co
 | --- | --- | --- |
 | Is the sandbox ready to use? | `Ready=True` | `kubectl wait sandbox/<name> --for=condition=Ready --timeout=2m` |
 | Why isn't it ready? | `Ready` reason and message, plus `PodScheduled` (for example `Unschedulable`) | `kubectl get sandbox <name> -o jsonpath='{range .status.conditions[*]}{.type}{"\t"}{.status}{"\t"}{.reason}{"\t"}{.message}{"\n"}{end}'` |
+| Is it crash-looping? | `ContainersRestarted=True` | `kubectl get sandbox <name> -o jsonpath='{.status.conditions[?(@.type=="ContainersRestarted")].message}'` |
 | Has suspension finished? | `Suspended=True` | `kubectl wait sandbox/<name> --for=condition=Suspended --timeout=2m` |
 | Did the workload exit? | `Finished=True`, reason `PodSucceeded` or `PodFailed` | `kubectl get sandbox <name> -o jsonpath='{.status.conditions[?(@.type=="Finished")].reason}'` |
 | Has it expired? | `Ready=False` with reason `SandboxExpired` | `kubectl get sandbox <name> -o jsonpath='{.status.conditions[?(@.type=="Ready")].reason}'` |
@@ -69,3 +70,15 @@ The status, reason and message are copied from the Pod, so reasons set by the sc
 | --- | --- | --- |
 | `True` | `PodScheduled` | The Pod is scheduled to a node. Used when the Pod condition has no reason. |
 | `False` or `Unknown` | `PodSchedulingUnknown` | The Pod has not reported a `PodScheduled` condition yet, the Pod condition is not `True` and has no reason, or the Pod state could not be read. |
+
+### ContainersRestarted
+
+Reports whether any container or init container of the backing Pod has restarted, so you can tell a crash-looping Sandbox apart from a healthy one without reading the Pod. Check it alongside `Ready`: a container without a readiness probe is Ready as soon as it starts, so a crash-looping Sandbox briefly reports `Ready=True` after every restart. It is absent when the Pod is confirmed absent or not owned by the Sandbox, and is removed on expiry. A new Pod starts again at `False`. A failed Pod lookup does not remove it, see `ContainerRestartsUnknown`.
+
+The message names the first restarted container and its last exit reason, for example `container "app" has restarted (last exit: Error)`. It omits the restart count, which you can read from the Pod.
+
+| Status | Reason | Meaning |
+| --- | --- | --- |
+| `True` | `ContainerRestarted` | At least one container or init container has a non-zero restart count. |
+| `False` | `NoContainerRestarts` | No container has restarted. |
+| `Unknown` | `ContainerRestartsUnknown` | The Pod state could not be read. |

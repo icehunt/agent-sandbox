@@ -121,6 +121,26 @@ const (
 	// reason (and not True), or could not be read.
 	SandboxReasonPodSchedulingUnknown = "PodSchedulingUnknown"
 
+	// SandboxConditionContainersRestarted reports whether any container of the
+	// backing Pod (init or regular) has restarted, so consumers such as warm-pool
+	// adoption can tell a crash-looping Sandbox apart from a healthy one without
+	// reading the Pod. A container without a readiness probe is Ready as soon as
+	// it starts, so Ready alone briefly reads True on every restart. The status
+	// stays True as the restart count grows, so lastTransitionTime does not move
+	// on each restart; it does move when a failed Pod lookup reports Unknown, so
+	// it is not a reliable first-restart time. The condition is absent while the
+	// Sandbox has no backing Pod, and resets with the Pod.
+	SandboxConditionContainersRestarted ConditionType = "ContainersRestarted"
+	// SandboxReasonContainerRestarted indicates at least one container of the
+	// backing Pod has a non-zero restart count.
+	SandboxReasonContainerRestarted = "ContainerRestarted"
+	// SandboxReasonNoContainerRestarts indicates no container of the backing Pod
+	// has restarted.
+	SandboxReasonNoContainerRestarts = "NoContainerRestarts"
+	// SandboxReasonContainerRestartsUnknown indicates the backing Pod could not
+	// be read, so container restarts cannot be determined.
+	SandboxReasonContainerRestartsUnknown = "ContainerRestartsUnknown"
+
 	// SandboxConditionFinished reports that the backing Pod reached a terminal phase.
 	// It is set (Status True) only after the Pod has Succeeded or Failed, with the reason
 	// recording which; it is absent while the Pod is still running or does not exist.

@@ -196,6 +196,7 @@ func TestComputeConditions(t *testing.T) {
 			expectedConditions: []metav1.Condition{
 				{Type: "Suspended", Status: "False", ObservedGeneration: gen, Reason: "NotSuspended", Message: "Sandbox is not suspended"},
 				{Type: "PodScheduled", Status: "Unknown", ObservedGeneration: gen, Reason: "PodSchedulingUnknown", Message: "Pod has not reported a PodScheduled condition yet"},
+				{Type: "ContainersRestarted", Status: "False", ObservedGeneration: gen, Reason: "NoContainerRestarts", Message: "No container has restarted"},
 				{Type: "Ready", Status: "False", ObservedGeneration: gen, Reason: "DependenciesNotReady", Message: "Pod exists with phase: Pending; Service Exists"},
 			},
 		},
@@ -216,6 +217,7 @@ func TestComputeConditions(t *testing.T) {
 			expectedConditions: []metav1.Condition{
 				{Type: "Suspended", Status: "False", ObservedGeneration: gen, Reason: "NotSuspended", Message: "Sandbox is not suspended"},
 				{Type: "PodScheduled", Status: "True", ObservedGeneration: gen, Reason: "PodScheduled"},
+				{Type: "ContainersRestarted", Status: "False", ObservedGeneration: gen, Reason: "NoContainerRestarts", Message: "No container has restarted"},
 				{Type: "Ready", Status: "False", ObservedGeneration: gen, Reason: "DependenciesNotReady", Message: "Pod is Running but not Ready; Service Exists"},
 			},
 		},
@@ -237,6 +239,7 @@ func TestComputeConditions(t *testing.T) {
 			expectedConditions: []metav1.Condition{
 				{Type: "Suspended", Status: "False", ObservedGeneration: gen, Reason: "NotSuspended", Message: "Sandbox is not suspended"},
 				{Type: "PodScheduled", Status: "Unknown", ObservedGeneration: gen, Reason: "PodSchedulingUnknown", Message: "Pod has not reported a PodScheduled condition yet"},
+				{Type: "ContainersRestarted", Status: "False", ObservedGeneration: gen, Reason: "NoContainerRestarts", Message: "No container has restarted"},
 				{Type: "Ready", Status: "False", ObservedGeneration: gen, Reason: "DependenciesNotReady", Message: "Pod is Ready but has no podIPs yet; Service Exists"},
 			},
 		},
@@ -268,6 +271,7 @@ func TestComputeConditions(t *testing.T) {
 			expectedConditions: []metav1.Condition{
 				{Type: "Suspended", Status: "False", ObservedGeneration: gen, Reason: "PodTerminating", Message: "Pod is terminating. Sandbox is suspending"},
 				{Type: "PodScheduled", Status: "Unknown", ObservedGeneration: gen, Reason: "PodSchedulingUnknown", Message: "Pod has not reported a PodScheduled condition yet"},
+				{Type: "ContainersRestarted", Status: "False", ObservedGeneration: gen, Reason: "NoContainerRestarts", Message: "No container has restarted"},
 				{Type: "Ready", Status: "False", ObservedGeneration: gen, Reason: "SandboxSuspended", Message: "Sandbox is suspending"},
 			},
 		},
@@ -319,6 +323,7 @@ func TestComputeConditions(t *testing.T) {
 			expectedConditions: []metav1.Condition{
 				{Type: "Suspended", Status: "False", ObservedGeneration: gen, Reason: "PodTerminating", Message: "Pod is terminating. Sandbox is suspending"},
 				{Type: "PodScheduled", Status: "Unknown", ObservedGeneration: gen, Reason: "PodSchedulingUnknown", Message: "Pod has not reported a PodScheduled condition yet"},
+				{Type: "ContainersRestarted", Status: "False", ObservedGeneration: gen, Reason: "NoContainerRestarts", Message: "No container has restarted"},
 				{Type: "Ready", Status: "False", ObservedGeneration: gen, Reason: "ReconcilerError", Message: "Error seen: failed to delete pod: boom"},
 			},
 		},
@@ -343,6 +348,7 @@ func TestComputeConditions(t *testing.T) {
 			expectedConditions: []metav1.Condition{
 				{Type: "Suspended", Status: "Unknown", ObservedGeneration: gen, Reason: "PodStateUnknown", Message: "Pod state is unknown. Sandbox suspension cannot be confirmed"},
 				{Type: "PodScheduled", Status: "Unknown", ObservedGeneration: gen, Reason: "PodSchedulingUnknown", Message: "Pod state is unknown. Pod scheduling cannot be determined"},
+				{Type: "ContainersRestarted", Status: "Unknown", ObservedGeneration: gen, Reason: "ContainerRestartsUnknown", Message: "Pod state is unknown. Container restarts cannot be determined"},
 				{Type: "Ready", Status: "False", ObservedGeneration: gen, Reason: "ReconcilerError", Message: "Error seen: pod get failed"},
 			},
 		},
@@ -359,6 +365,7 @@ func TestComputeConditions(t *testing.T) {
 			expectedConditions: []metav1.Condition{
 				{Type: "Suspended", Status: "False", ObservedGeneration: gen, Reason: "NotSuspended", Message: "Sandbox is not suspended"},
 				{Type: "PodScheduled", Status: "Unknown", ObservedGeneration: gen, Reason: "PodSchedulingUnknown", Message: "Pod state is unknown. Pod scheduling cannot be determined"},
+				{Type: "ContainersRestarted", Status: "Unknown", ObservedGeneration: gen, Reason: "ContainerRestartsUnknown", Message: "Pod state is unknown. Container restarts cannot be determined"},
 				{Type: "Ready", Status: "False", ObservedGeneration: gen, Reason: "ReconcilerError", Message: "Error seen: pod list failed"},
 			},
 		},
@@ -384,6 +391,7 @@ func TestComputeConditions(t *testing.T) {
 			expectedConditions: []metav1.Condition{
 				{Type: "Suspended", Status: "False", ObservedGeneration: gen, Reason: "NotSuspended", Message: "Sandbox is not suspended"},
 				{Type: "PodScheduled", Status: "Unknown", ObservedGeneration: gen, Reason: "PodSchedulingUnknown", Message: "Pod has not reported a PodScheduled condition yet"},
+				{Type: "ContainersRestarted", Status: "False", ObservedGeneration: gen, Reason: "NoContainerRestarts", Message: "No container has restarted"},
 				{Type: "Ready", Status: "False", ObservedGeneration: gen, Reason: "DependenciesNotReady", Message: "Pod exists with phase: Unknown; Service Exists"},
 			},
 		},
@@ -408,6 +416,7 @@ func TestComputeConditions(t *testing.T) {
 				{Type: "Suspended", Status: "False", ObservedGeneration: gen, Reason: "NotSuspended", Message: "Sandbox is not suspended"},
 				{Type: "Finished", Status: "True", ObservedGeneration: gen, Reason: "PodFailed", Message: "Pod failed"},
 				{Type: "PodScheduled", Status: "True", ObservedGeneration: gen, Reason: "PodScheduled"},
+				{Type: "ContainersRestarted", Status: "False", ObservedGeneration: gen, Reason: "NoContainerRestarts", Message: "No container has restarted"},
 				{Type: "Ready", Status: "False", ObservedGeneration: gen, Reason: "PodFailed", Message: "Pod failed"},
 			},
 		},
@@ -432,6 +441,7 @@ func TestComputeConditions(t *testing.T) {
 				{Type: "Suspended", Status: "False", ObservedGeneration: gen, Reason: "NotSuspended", Message: "Sandbox is not suspended"},
 				{Type: "Finished", Status: "True", ObservedGeneration: gen, Reason: "PodSucceeded", Message: "Pod completed successfully"},
 				{Type: "PodScheduled", Status: "True", ObservedGeneration: gen, Reason: "PodScheduled"},
+				{Type: "ContainersRestarted", Status: "False", ObservedGeneration: gen, Reason: "NoContainerRestarts", Message: "No container has restarted"},
 				{Type: "Ready", Status: "False", ObservedGeneration: gen, Reason: "PodSucceeded", Message: "Pod completed successfully"},
 			},
 		},
@@ -479,6 +489,7 @@ func TestComputeConditions(t *testing.T) {
 			expectedConditions: []metav1.Condition{
 				{Type: "Suspended", Status: "False", ObservedGeneration: gen, Reason: "NotSuspended", Message: "Sandbox is not suspended"},
 				{Type: "PodScheduled", Status: "False", ObservedGeneration: gen, Reason: "Unschedulable", Message: "0/3 nodes are available: 3 Insufficient cpu."},
+				{Type: "ContainersRestarted", Status: "False", ObservedGeneration: gen, Reason: "NoContainerRestarts", Message: "No container has restarted"},
 				{Type: "Ready", Status: "False", ObservedGeneration: gen, Reason: "DependenciesNotReady", Message: "Pod exists with phase: Pending; Service Exists"},
 			},
 		},
@@ -500,6 +511,7 @@ func TestComputeConditions(t *testing.T) {
 			expectedConditions: []metav1.Condition{
 				{Type: "Suspended", Status: "False", ObservedGeneration: gen, Reason: "NotSuspended", Message: "Sandbox is not suspended"},
 				{Type: "PodScheduled", Status: "False", ObservedGeneration: gen, Reason: "SchedulingGated", Message: "Scheduling is blocked due to non-empty scheduling gates"},
+				{Type: "ContainersRestarted", Status: "False", ObservedGeneration: gen, Reason: "NoContainerRestarts", Message: "No container has restarted"},
 				{Type: "Ready", Status: "False", ObservedGeneration: gen, Reason: "DependenciesNotReady", Message: "Pod exists with phase: Pending; Service Exists"},
 			},
 		},
@@ -519,6 +531,7 @@ func TestComputeConditions(t *testing.T) {
 			expectedConditions: []metav1.Condition{
 				{Type: "Suspended", Status: "False", ObservedGeneration: gen, Reason: "NotSuspended", Message: "Sandbox is not suspended"},
 				{Type: "PodScheduled", Status: "False", ObservedGeneration: gen, Reason: "PodSchedulingUnknown"},
+				{Type: "ContainersRestarted", Status: "False", ObservedGeneration: gen, Reason: "NoContainerRestarts", Message: "No container has restarted"},
 				{Type: "Ready", Status: "False", ObservedGeneration: gen, Reason: "DependenciesNotReady", Message: "Pod exists with phase: Pending; Service Exists"},
 			},
 		},
@@ -553,6 +566,7 @@ func TestComputeConditions(t *testing.T) {
 			expectedConditions: []metav1.Condition{
 				{Type: "Suspended", Status: "False", ObservedGeneration: gen, Reason: "NotSuspended", Message: "Sandbox is not suspended"},
 				{Type: "PodScheduled", Status: "Unknown", ObservedGeneration: gen, Reason: "PodSchedulingUnknown", Message: "Pod has not reported a PodScheduled condition yet"},
+				{Type: "ContainersRestarted", Status: "False", ObservedGeneration: gen, Reason: "NoContainerRestarts", Message: "No container has restarted"},
 				{Type: "Ready", Status: "False", ObservedGeneration: gen, Reason: "DependenciesNotReady", Message: `Pod exists with phase: Pending; container "app" is waiting: ImagePullBackOff`},
 			},
 		},
@@ -567,6 +581,7 @@ func TestComputeConditions(t *testing.T) {
 			expectedConditions: []metav1.Condition{
 				{Type: "Suspended", Status: "False", ObservedGeneration: gen, Reason: "NotSuspended", Message: "Sandbox is not suspended"},
 				{Type: "PodScheduled", Status: "Unknown", ObservedGeneration: gen, Reason: "PodSchedulingUnknown", Message: "Pod has not reported a PodScheduled condition yet"},
+				{Type: "ContainersRestarted", Status: "False", ObservedGeneration: gen, Reason: "NoContainerRestarts", Message: "No container has restarted"},
 				{Type: "Ready", Status: "False", ObservedGeneration: gen, Reason: "DependenciesNotReady", Message: `Pod exists with phase: Pending; init container "setup" is waiting: CreateContainerConfigError`},
 			},
 		},
@@ -577,6 +592,7 @@ func TestComputeConditions(t *testing.T) {
 			expectedConditions: []metav1.Condition{
 				{Type: "Suspended", Status: "False", ObservedGeneration: gen, Reason: "NotSuspended", Message: "Sandbox is not suspended"},
 				{Type: "PodScheduled", Status: "Unknown", ObservedGeneration: gen, Reason: "PodSchedulingUnknown", Message: "Pod has not reported a PodScheduled condition yet"},
+				{Type: "ContainersRestarted", Status: "True", ObservedGeneration: gen, Reason: "ContainerRestarted", Message: `container "app" has restarted (last exit: Error)`},
 				{Type: "Ready", Status: "False", ObservedGeneration: gen, Reason: "DependenciesNotReady", Message: `Pod is Running but not Ready; container "app" is in CrashLoopBackOff (last exit: Error)`},
 			},
 		},
@@ -587,6 +603,7 @@ func TestComputeConditions(t *testing.T) {
 			expectedConditions: []metav1.Condition{
 				{Type: "Suspended", Status: "False", ObservedGeneration: gen, Reason: "NotSuspended", Message: "Sandbox is not suspended"},
 				{Type: "PodScheduled", Status: "Unknown", ObservedGeneration: gen, Reason: "PodSchedulingUnknown", Message: "Pod has not reported a PodScheduled condition yet"},
+				{Type: "ContainersRestarted", Status: "False", ObservedGeneration: gen, Reason: "NoContainerRestarts", Message: "No container has restarted"},
 				{Type: "Ready", Status: "False", ObservedGeneration: gen, Reason: "DependenciesNotReady", Message: "Pod exists with phase: Pending"},
 			},
 		},
@@ -606,7 +623,55 @@ func TestComputeConditions(t *testing.T) {
 			expectedConditions: []metav1.Condition{
 				{Type: "Suspended", Status: "False", ObservedGeneration: gen, Reason: "NotSuspended", Message: "Sandbox is not suspended"},
 				{Type: "PodScheduled", Status: "Unknown", ObservedGeneration: gen, Reason: "PodSchedulingUnknown", Message: "Pod has not reported a PodScheduled condition yet"},
+				{Type: "ContainersRestarted", Status: "True", ObservedGeneration: gen, Reason: "ContainerRestarted", Message: `container "app" has restarted`},
 				{Type: "Ready", Status: "False", ObservedGeneration: gen, Reason: "DependenciesNotReady", Message: `Pod is Running but not Ready; container "app" is in CrashLoopBackOff`},
+			},
+		},
+		{
+			// A container without a readiness probe is Ready as soon as it starts,
+			// so a crash-looping Pod briefly reads Ready=True after every restart.
+			// ContainersRestarted must still report the restart during that window.
+			name:    "24. Restarted container that is running again reports ContainersRestarted while Ready",
+			sandbox: sbWithMode(sandboxv1beta1.SandboxOperatingModeRunning),
+			pod: ownedPod(podWithContainerState(corev1.PodRunning, true, corev1.ContainerStatus{
+				Name:                 "app",
+				RestartCount:         2,
+				State:                corev1.ContainerState{Running: &corev1.ContainerStateRunning{}},
+				LastTerminationState: corev1.ContainerState{Terminated: &corev1.ContainerStateTerminated{Reason: "Error", ExitCode: 1}},
+			})),
+			expectedConditions: []metav1.Condition{
+				{Type: "Suspended", Status: "False", ObservedGeneration: gen, Reason: "NotSuspended", Message: "Sandbox is not suspended"},
+				{Type: "PodScheduled", Status: "Unknown", ObservedGeneration: gen, Reason: "PodSchedulingUnknown", Message: "Pod has not reported a PodScheduled condition yet"},
+				{Type: "ContainersRestarted", Status: "True", ObservedGeneration: gen, Reason: "ContainerRestarted", Message: `container "app" has restarted (last exit: Error)`},
+				{Type: "Ready", Status: "True", ObservedGeneration: gen, Reason: "DependenciesReady", Message: "Pod is Ready"},
+			},
+		},
+		{
+			name:    "25. Restarted init container is reported before a restarted container",
+			sandbox: sbWithMode(sandboxv1beta1.SandboxOperatingModeRunning),
+			pod: ownedPod(func() *corev1.Pod {
+				pod := podWithContainerState(corev1.PodRunning, false, waitingContainer("app", "CrashLoopBackOff", 1, "Error"))
+				pod.Status.InitContainerStatuses = []corev1.ContainerStatus{{
+					Name:                 "setup",
+					RestartCount:         1,
+					LastTerminationState: corev1.ContainerState{Terminated: &corev1.ContainerStateTerminated{Reason: "OOMKilled", ExitCode: 137}},
+				}}
+				return pod
+			}()),
+			expectedConditions: []metav1.Condition{
+				{Type: "Suspended", Status: "False", ObservedGeneration: gen, Reason: "NotSuspended", Message: "Sandbox is not suspended"},
+				{Type: "PodScheduled", Status: "Unknown", ObservedGeneration: gen, Reason: "PodSchedulingUnknown", Message: "Pod has not reported a PodScheduled condition yet"},
+				{Type: "ContainersRestarted", Status: "True", ObservedGeneration: gen, Reason: "ContainerRestarted", Message: `init container "setup" has restarted (last exit: OOMKilled)`},
+				{Type: "Ready", Status: "False", ObservedGeneration: gen, Reason: "DependenciesNotReady", Message: `Pod is Running but not Ready; container "app" is in CrashLoopBackOff (last exit: Error)`},
+			},
+		},
+		{
+			name:    "26. Pod not owned by the Sandbox does not report ContainersRestarted",
+			sandbox: sbWithMode(sandboxv1beta1.SandboxOperatingModeRunning),
+			pod:     podWithContainerState(corev1.PodRunning, false, waitingContainer("app", "CrashLoopBackOff", 3, "Error")),
+			expectedConditions: []metav1.Condition{
+				{Type: "Suspended", Status: "False", ObservedGeneration: gen, Reason: "NotSuspended", Message: "Sandbox is not suspended"},
+				{Type: "Ready", Status: "False", ObservedGeneration: gen, Reason: "DependenciesNotReady", Message: "Pod is Running but not Ready"},
 			},
 		},
 	}
@@ -778,6 +843,13 @@ func TestReconcile(t *testing.T) {
 						Message:            "Pod has not reported a PodScheduled condition yet",
 					},
 					{
+						Type:               string(sandboxv1beta1.SandboxConditionContainersRestarted),
+						Status:             metav1.ConditionFalse,
+						ObservedGeneration: 1,
+						Reason:             sandboxv1beta1.SandboxReasonNoContainerRestarts,
+						Message:            "No container has restarted",
+					},
+					{
 						Type:               "Ready",
 						Status:             "False",
 						ObservedGeneration: 1,
@@ -841,6 +913,13 @@ func TestReconcile(t *testing.T) {
 						ObservedGeneration: 1,
 						Reason:             sandboxv1beta1.SandboxReasonPodSchedulingUnknown,
 						Message:            "Pod has not reported a PodScheduled condition yet",
+					},
+					{
+						Type:               string(sandboxv1beta1.SandboxConditionContainersRestarted),
+						Status:             metav1.ConditionFalse,
+						ObservedGeneration: 1,
+						Reason:             sandboxv1beta1.SandboxReasonNoContainerRestarts,
+						Message:            "No container has restarted",
 					},
 					{
 						Type:               string(sandboxv1beta1.SandboxConditionReady),
@@ -949,6 +1028,13 @@ func TestReconcile(t *testing.T) {
 						ObservedGeneration: 1,
 						Reason:             sandboxv1beta1.SandboxReasonPodSchedulingUnknown,
 						Message:            "Pod has not reported a PodScheduled condition yet",
+					},
+					{
+						Type:               string(sandboxv1beta1.SandboxConditionContainersRestarted),
+						Status:             metav1.ConditionFalse,
+						ObservedGeneration: 1,
+						Reason:             sandboxv1beta1.SandboxReasonNoContainerRestarts,
+						Message:            "No container has restarted",
 					},
 					{
 						Type:               string(sandboxv1beta1.SandboxConditionReady),
@@ -1092,6 +1178,13 @@ func TestReconcile(t *testing.T) {
 						Reason:             sandboxv1beta1.SandboxReasonPodScheduled,
 					},
 					{
+						Type:               string(sandboxv1beta1.SandboxConditionContainersRestarted),
+						Status:             metav1.ConditionFalse,
+						ObservedGeneration: 1,
+						Reason:             sandboxv1beta1.SandboxReasonNoContainerRestarts,
+						Message:            "No container has restarted",
+					},
+					{
 						Type:               "Ready",
 						Status:             "True",
 						ObservedGeneration: 1,
@@ -1172,6 +1265,13 @@ func TestReconcile(t *testing.T) {
 						Reason:             sandboxv1beta1.SandboxReasonPodScheduled,
 					},
 					{
+						Type:               string(sandboxv1beta1.SandboxConditionContainersRestarted),
+						Status:             metav1.ConditionFalse,
+						ObservedGeneration: 1,
+						Reason:             sandboxv1beta1.SandboxReasonNoContainerRestarts,
+						Message:            "No container has restarted",
+					},
+					{
 						Type:               "Ready",
 						Status:             "True",
 						ObservedGeneration: 1,
@@ -1249,6 +1349,13 @@ func TestReconcile(t *testing.T) {
 						Status:             "True",
 						ObservedGeneration: 1,
 						Reason:             sandboxv1beta1.SandboxReasonPodScheduled,
+					},
+					{
+						Type:               string(sandboxv1beta1.SandboxConditionContainersRestarted),
+						Status:             metav1.ConditionFalse,
+						ObservedGeneration: 1,
+						Reason:             sandboxv1beta1.SandboxReasonNoContainerRestarts,
+						Message:            "No container has restarted",
 					},
 					{
 						Type:               "Ready",
@@ -1566,6 +1673,13 @@ func TestReconcile(t *testing.T) {
 						ObservedGeneration: 1,
 						Reason:             sandboxv1beta1.SandboxReasonPodSchedulingUnknown,
 						Message:            "Pod has not reported a PodScheduled condition yet",
+					},
+					{
+						Type:               string(sandboxv1beta1.SandboxConditionContainersRestarted),
+						Status:             metav1.ConditionFalse,
+						ObservedGeneration: 1,
+						Reason:             sandboxv1beta1.SandboxReasonNoContainerRestarts,
+						Message:            "No container has restarted",
 					},
 					{
 						Type:               "Ready",
@@ -5031,7 +5145,61 @@ func TestPodScheduledConditionRemovedWithPod(t *testing.T) {
 
 	require.NoError(t, r.Get(t.Context(), req.NamespacedName, updatedSandbox))
 	require.Nil(t, meta.FindStatusCondition(updatedSandbox.Status.Conditions, string(sandboxv1beta1.SandboxConditionPodScheduled)))
+	require.Nil(t, meta.FindStatusCondition(updatedSandbox.Status.Conditions, string(sandboxv1beta1.SandboxConditionContainersRestarted)))
 	require.NotNil(t, meta.FindStatusCondition(updatedSandbox.Status.Conditions, string(sandboxv1beta1.SandboxConditionSuspended)))
+}
+
+// TestContainersRestartedConditionStableAcrossRestarts verifies the condition
+// does not change as a crash-looping container keeps restarting, so it costs
+// one status write when the first restart is observed rather than one per
+// backoff.
+func TestContainersRestartedConditionStableAcrossRestarts(t *testing.T) {
+	sandbox := &sandboxv1beta1.Sandbox{
+		ObjectMeta: metav1.ObjectMeta{Name: "restarts", Namespace: "default", UID: sandboxUID, Generation: 1},
+	}
+	podWithRestarts := func(restarts int32, running bool) *corev1.Pod {
+		cs := corev1.ContainerStatus{
+			Name:                 "app",
+			RestartCount:         restarts,
+			LastTerminationState: corev1.ContainerState{Terminated: &corev1.ContainerStateTerminated{Reason: "Error", ExitCode: 1}},
+		}
+		if running {
+			cs.State.Running = &corev1.ContainerStateRunning{}
+		} else {
+			cs.State.Waiting = &corev1.ContainerStateWaiting{Reason: "CrashLoopBackOff", Message: "back-off 40s restarting failed container"}
+		}
+		return &corev1.Pod{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:            sandbox.Name,
+				Namespace:       sandbox.Namespace,
+				OwnerReferences: []metav1.OwnerReference{sandboxControllerRef(sandbox.Name)},
+			},
+			Status: corev1.PodStatus{Phase: corev1.PodRunning, ContainerStatuses: []corev1.ContainerStatus{cs}},
+		}
+	}
+
+	first := computeContainersRestartedCondition(sandbox, podWithRestarts(1, false), nil)
+	require.NotNil(t, first)
+	require.Equal(t, metav1.ConditionTrue, first.Status)
+	for _, pod := range []*corev1.Pod{podWithRestarts(2, true), podWithRestarts(5, false), podWithRestarts(40, true)} {
+		require.Equal(t, first, computeContainersRestartedCondition(sandbox, pod, nil))
+	}
+}
+
+// TestSetSandboxExpiredConditionRemovesContainersRestarted verifies expiry,
+// which tears down the Pod without reconciling child resources, does not leave
+// a stale ContainersRestarted condition behind.
+func TestSetSandboxExpiredConditionRemovesContainersRestarted(t *testing.T) {
+	sandbox := &sandboxv1beta1.Sandbox{}
+	meta.SetStatusCondition(&sandbox.Status.Conditions, metav1.Condition{
+		Type:   string(sandboxv1beta1.SandboxConditionContainersRestarted),
+		Status: metav1.ConditionTrue,
+		Reason: sandboxv1beta1.SandboxReasonContainerRestarted,
+	})
+
+	setSandboxExpiredCondition(sandbox)
+
+	require.Nil(t, meta.FindStatusCondition(sandbox.Status.Conditions, string(sandboxv1beta1.SandboxConditionContainersRestarted)))
 }
 
 // TestPodScheduledConditionUnknownWhenPodLookupFails verifies that a failed Pod
@@ -5459,8 +5627,9 @@ func TestSandboxReconcile_ConditionsDoNotAccumulate(t *testing.T) {
 
 	var got sandboxv1beta1.Sandbox
 	require.NoError(t, fc.Get(ctx, types.NamespacedName{Name: sbName, Namespace: sbNs}, &got))
-	// Steady state for a running, ready sandbox: Suspended, PodScheduled, Ready.
-	require.Len(t, got.Status.Conditions, 3,
+	// Steady state for a running, ready sandbox: Suspended, PodScheduled,
+	// ContainersRestarted, Ready.
+	require.Len(t, got.Status.Conditions, 4,
 		"conditions slice must not grow across %d reconcile iterations — controller must upsert not append", iters)
 }
 

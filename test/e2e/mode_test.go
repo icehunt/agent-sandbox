@@ -70,6 +70,13 @@ func TestSandboxSuspendResumeCycleWithOperatingMode(t *testing.T) {
 					Reason:             sandboxv1beta1.SandboxReasonPodScheduled,
 				},
 				{
+					Type:               string(sandboxv1beta1.SandboxConditionContainersRestarted),
+					Status:             metav1.ConditionFalse,
+					ObservedGeneration: gen,
+					Reason:             sandboxv1beta1.SandboxReasonNoContainerRestarts,
+					Message:            "No container has restarted",
+				},
+				{
 					Type:               "Ready",
 					Status:             metav1.ConditionTrue,
 					ObservedGeneration: gen,
@@ -192,6 +199,13 @@ func TestSandboxSuspensionWithTerminatingPod(t *testing.T) {
 					Reason:             sandboxv1beta1.SandboxReasonPodScheduled,
 				},
 				{
+					Type:               string(sandboxv1beta1.SandboxConditionContainersRestarted),
+					Status:             metav1.ConditionFalse,
+					ObservedGeneration: 1,
+					Reason:             sandboxv1beta1.SandboxReasonNoContainerRestarts,
+					Message:            "No container has restarted",
+				},
+				{
 					Type:               "Ready",
 					Status:             metav1.ConditionTrue,
 					ObservedGeneration: 1,
@@ -271,6 +285,13 @@ func TestSandboxSuspensionWithTerminatingPod(t *testing.T) {
 					Status:             metav1.ConditionTrue,
 					ObservedGeneration: 2,
 					Reason:             sandboxv1beta1.SandboxReasonPodScheduled,
+				},
+				{
+					Type:               string(sandboxv1beta1.SandboxConditionContainersRestarted),
+					Status:             metav1.ConditionFalse,
+					ObservedGeneration: 2,
+					Reason:             sandboxv1beta1.SandboxReasonNoContainerRestarts,
+					Message:            "No container has restarted",
 				},
 				{
 					Type:               "Ready",
@@ -370,6 +391,13 @@ func TestSandboxPodDeletionKeepsSuspendedFalse(t *testing.T) {
 				Status:             metav1.ConditionTrue,
 				ObservedGeneration: 1,
 				Reason:             sandboxv1beta1.SandboxReasonPodScheduled,
+			},
+			{
+				Type:               string(sandboxv1beta1.SandboxConditionContainersRestarted),
+				Status:             metav1.ConditionFalse,
+				ObservedGeneration: 1,
+				Reason:             sandboxv1beta1.SandboxReasonNoContainerRestarts,
+				Message:            "No container has restarted",
 			},
 			{
 				Type:               "Ready",

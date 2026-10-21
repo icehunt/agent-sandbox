@@ -106,6 +106,13 @@ func TestSimpleSandbox(t *testing.T) {
 					Reason:             sandboxv1beta1.SandboxReasonPodScheduled,
 				},
 				{
+					Type:               string(sandboxv1beta1.SandboxConditionContainersRestarted),
+					Status:             metav1.ConditionFalse,
+					ObservedGeneration: 1,
+					Reason:             sandboxv1beta1.SandboxReasonNoContainerRestarts,
+					Message:            "No container has restarted",
+				},
+				{
 					Type:               "Ready",
 					Status:             metav1.ConditionTrue,
 					ObservedGeneration: 1,
